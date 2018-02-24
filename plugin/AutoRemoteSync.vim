@@ -2,6 +2,17 @@ if exists("g:loaded_AutoRemoteSync")
         finish
 endif
 let g:loaded_AutoRemoteSync = 1
+let g:AutoRemoteSyncEnabled = 0
+let g:AutoRemoteSyncOnBufwriteEnabled = 0
+
+function! AutoRemoteSync#Enable()
+        let g:AutoRemoteSyncEnabled = 1
+        call AutoRemoteSync#RegisterAutoCommandOnBufWrite()
+endfunction
+
+function! AutoRemoteSync#Disable()
+        let g:AutoRemoteSyncEnabled = 0
+endfunction
 
 function! AutoRemoteSync#GetConfig()
         let cfgFilepath = getcwd() . "/" . AutoRemoteSync#GetConfigFilename()
@@ -18,12 +29,15 @@ function! AutoRemoteSync#ExecExternalCommand(command, verbose)
         if a:verbose == 1
                 execute "!" . a:command
         else
-                silent "!" . a:command
+                silent execute "!" . a:command
         endif
 endfunction
 
 function! AutoRemoteSync#RegisterAutoCommandOnBufWrite()
-        autocmd! BufWritePost * AutoRemoteSync#Upload
+        if g:AutoRemoteSyncOnBufwriteEnabled == 0
+                let g:AutoRemoteSyncOnBufwriteEnabled = 1
+                autocmd! BufWritePost * :call AutoRemoteSync#Upload()
+        endif
 endfunction
 
 function! AutoRemoteSync#GetBasename(...)
@@ -43,6 +57,9 @@ function! AutoRemoteSync#GetBasedir(...)
 endfunction
 
 function! AutoRemoteSync#Upload(...)
+        if g:AutoRemoteSyncEnabled == 0 && a:0 == 0
+                return
+        endif
         let buffername = bufname("%")
         let basedir = AutoRemoteSync#GetBasedir()
         let filepath = get(a:, 1, buffername)

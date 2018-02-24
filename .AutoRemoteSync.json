@@ -1,8 +1,8 @@
 {
         "remote": {
-                "host": "superevilmegaco.com",
+                "host": "example.com",
                 "user": "root",
                 "port": 22,
-                "path": "/www/walialu.com/about/htdocs"
+                "path": "/var/www/html"
         }
 }
