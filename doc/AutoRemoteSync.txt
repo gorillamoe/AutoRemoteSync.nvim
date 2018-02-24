@@ -1,0 +1,38 @@
+*AutoRemoteSync.txt*  A Vim/Neovim plugin to automatically upload files
+via `scp` or `rsync` to a remote when you write the contents of a buffer to disk.
+
+Author:  Marco Kellershoff <https://about.walialu.com/>
+License: MIT License (see |license|)
+
+INTRODUCTION                                    *AutoRemoteSync*
+
+This plugin's main purpose is to upload every file that you save to a remote
+location. This can be defined on a per-project-basis via a configuration file
+(`.AutoRemoteSync.json`).
+
+COMMANDS                                        *AutoRemoteSync-commands*
+
+There are no commands registered by the plugin.
+
+MAPPINGS                                        *AutoRemoteSync-mappings*
+
+There are no mappings registered by the plugin.
+You need to map it according to your preference.
+
+                                                *AutoRemoteSync#Upload()*
+Uploads the file opened in the current buffer when no argument is passed.
+You can pass the filepath relative to the current working directory,
+if you want to upload a different file manually.
+
+                                                *AutoRemoteSync#Download()*
+Downloads the file opened in the current buffer when no argument is passed.
+You can pass the filepath relative to the current working directory,
+if you want to download a different file manually.
+
+ABOUT                                           *Upload-about*
+
+Grab the latest version or report a bug on GitHub:
+
+http://github.com/superevilmegaco/AutoRemoteSync.nvim
+
+ vim:tw=78:et:ft=help:norl:

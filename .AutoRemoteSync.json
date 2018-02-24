@@ -1,0 +1,8 @@
+{
+        "remote": {
+                "host": "superevilmegaco.com",
+                "user": "root",
+                "port": 22,
+                "path": "/www/superevilmegaco.com/viral-watson/htdocs"
+        }
+}
