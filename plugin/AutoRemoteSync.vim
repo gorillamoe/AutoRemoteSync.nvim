@@ -26,10 +26,14 @@ function! AutoRemoteSync#GetConfigFilename()
 endfunction
 
 function! AutoRemoteSync#ExecExternalCommand(command, verbose)
-        if a:verbose == 1
-                execute "!" . a:command
+        if has("nvim") == 1
+                call jobstart(["bash", "-c", a:command])
         else
-                silent execute "!" . a:command
+                if a:verbose == 1
+                        execute "!" . a:command
+                else
+                        silent execute "!" . a:command
+                endif
         endif
 endfunction
 
@@ -69,11 +73,7 @@ function! AutoRemoteSync#Upload(...)
                 \. " " . filepath . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . basedir
-        if has("nvim") == 1
-                call jobstart(["bash", "-c", cmd])
-        else
-                call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
-        endif
+        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
 endfunction
 
 function! AutoRemoteSync#Download(...)
@@ -85,11 +85,7 @@ function! AutoRemoteSync#Download(...)
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . filepath
                 \. " " . filepath . " "
-        if has("nvim") == 1
-                call jobstart(["bash", "-c", cmd])
-        else
-                call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
-        endif
+        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
 endfunction
 
 function! AutoRemoteSync#ReadfileAsString(filepath)
