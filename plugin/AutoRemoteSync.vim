@@ -69,7 +69,11 @@ function! AutoRemoteSync#Upload(...)
                 \. " " . filepath . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . basedir
-        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+        if has("nvim") == 1
+                call jobstart(["bash", "-c", cmd])
+        else
+                call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+        endif
 endfunction
 
 function! AutoRemoteSync#Download(...)
@@ -77,11 +81,15 @@ function! AutoRemoteSync#Download(...)
         let filepath = get(a:, 1, buffername)
         let verbose = get(a:, 2, 0)
         let cfg = AutoRemoteSync#GetConfig()
-        let cmd = " scp -r -P " . cfg.remote.port . " "
+        let cmd = "scp -r -P " . cfg.remote.port . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . filepath
                 \. " " . filepath . " "
-        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+        if has("nvim") == 1
+                call jobstart(["bash", "-c", cmd])
+        else
+                call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+        endif
 endfunction
 
 function! AutoRemoteSync#ReadfileAsString(filepath)
