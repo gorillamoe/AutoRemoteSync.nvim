@@ -14,8 +14,7 @@ function! AutoRemoteSync#GetConfigFilename()
         return ".AutoRemoteSync.json"
 endfunction
 
-function! AutoRemoteSync#ExecExternalCommand(command, ...)
-        let verbose = get(a:, 2, 0)
+function! AutoRemoteSync#ExecExternalCommand(command, verbose)
         if a:verbose == 1
                 execute "!" . a:command
         else
@@ -27,26 +26,45 @@ function! AutoRemoteSync#RegisterAutoCommandOnBufWrite()
         autocmd! BufWritePost * AutoRemoteSync#Upload
 endfunction
 
-function! AutoRemoteSync#Upload(...)
+function! AutoRemoteSync#GetBasename(...)
         let buffername = bufname("%")
         let filepath = get(a:, 1, buffername)
+        return fnamemodify(filepath, ":t")
+endfunction
+
+function! AutoRemoteSync#GetBasedir(...)
+        let buffername = bufname("%")
+        let filepath = get(a:, 1, buffername)
+        let basedir = fnamemodify(filepath, ":h")
+        if basedir == "."
+                return ""
+        else
+                return basedir
+endfunction
+
+function! AutoRemoteSync#Upload(...)
+        let buffername = bufname("%")
+        let basedir = AutoRemoteSync#GetBasedir()
+        let filepath = get(a:, 1, buffername)
+        let verbose = get(a:, 2, 0)
         let cfg = AutoRemoteSync#GetConfig()
-        let cmd = "scp -r -p " . cfg.remote.port
+        let cmd = "scp -r -P " . cfg.remote.port
                 \. " " . filepath . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
-                \. cfg.remote.path . "/" . filepath
-        call AutoRemoteSync#ExecExternalCommand(cmd)
+                \. cfg.remote.path . "/" . basedir
+        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
 endfunction
 
 function! AutoRemoteSync#Download(...)
         let buffername = bufname("%")
         let filepath = get(a:, 1, buffername)
+        let verbose = get(a:, 2, 0)
         let cfg = AutoRemoteSync#GetConfig()
-        let cmd = " scp -r -p " . cfg.remote.port . " "
+        let cmd = " scp -r -P " . cfg.remote.port . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . filepath
                 \. " " . filepath . " "
-        call AutoRemoteSync#ExecExternalCommand(cmd)
+        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
 endfunction
 
 function! AutoRemoteSync#ReadfileAsString(filepath)
