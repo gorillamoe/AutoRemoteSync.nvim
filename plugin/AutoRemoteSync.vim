@@ -4,25 +4,25 @@ endif
 let g:loaded_AutoRemoteSync = 1
 
 function! AutoRemoteSync#Enable()
-        call AutoRemoteSync#RegisterAutoCommandOnBufWrite(1)
+        call s:RegisterAutoCommandOnBufWrite(1)
 endfunction
 
 function! AutoRemoteSync#Disable()
-        call AutoRemoteSync#RegisterAutoCommandOnBufWrite(0)
+        call s:RegisterAutoCommandOnBufWrite(0)
 endfunction
 
-function! AutoRemoteSync#GetConfig()
-        let cfgFilepath = getcwd() . "/" . AutoRemoteSync#GetConfigFilename()
-        let jsonstr = AutoRemoteSync#ReadfileAsString(".AutoRemoteSync.json")
-        let json = AutoRemoteSync#JSONParse(jsonstr)
+function! s:GetConfig()
+        let cfgFilepath = getcwd() . "/" . s:GetConfigFilename()
+        let jsonstr = s:ReadfileAsString(".AutoRemoteSync.json")
+        let json = s:JSONParse(jsonstr)
         return json
 endfunction
 
-function! AutoRemoteSync#GetConfigFilename()
+function! s:GetConfigFilename()
         return ".AutoRemoteSync.json"
 endfunction
 
-function! AutoRemoteSync#ExecExternalCommand(command, verbose)
+function! s:ExecExternalCommand(command, verbose)
         if has("nvim") == 1
                 call jobstart(["bash", "-c", a:command])
         elseif v:version >= 800
@@ -36,7 +36,7 @@ function! AutoRemoteSync#ExecExternalCommand(command, verbose)
         endif
 endfunction
 
-function! AutoRemoteSync#RegisterAutoCommandOnBufWrite(enable)
+function! s:RegisterAutoCommandOnBufWrite(enable)
         if a:enable == 1
                 augroup AutoRemoteSyncOnBufWriteAugroup
                         autocmd!
@@ -49,13 +49,13 @@ function! AutoRemoteSync#RegisterAutoCommandOnBufWrite(enable)
         endif
 endfunction
 
-function! AutoRemoteSync#GetBasename(...)
+function! s:GetBasename(...)
         let buffername = bufname("%")
         let filepath = get(a:, 1, buffername)
         return fnamemodify(filepath, ":t")
 endfunction
 
-function! AutoRemoteSync#GetBasedir(...)
+function! s:GetBasedir(...)
         let buffername = bufname("%")
         let filepath = get(a:, 1, buffername)
         let basedir = fnamemodify(filepath, ":h")
@@ -67,27 +67,27 @@ endfunction
 
 function! AutoRemoteSync#Upload(...)
         let buffername = bufname("%")
-        let basedir = AutoRemoteSync#GetBasedir()
+        let basedir = s:GetBasedir()
         let filepath = get(a:, 1, buffername)
         let verbose = get(a:, 2, 0)
-        let cfg = AutoRemoteSync#GetConfig()
+        let cfg = s:GetConfig()
         let cmd = "scp -r -P " . cfg.remote.port
                 \. " " . filepath . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . basedir
-        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+        call s:ExecExternalCommand(cmd, verbose)
 endfunction
 
 function! AutoRemoteSync#Download(...)
         let buffername = bufname("%")
         let filepath = get(a:, 1, buffername)
         let verbose = get(a:, 2, 0)
-        let cfg = AutoRemoteSync#GetConfig()
+        let cfg = s:GetConfig()
         let cmd = "scp -r -P " . cfg.remote.port . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . filepath
                 \. " " . filepath . " "
-        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+        call s:ExecExternalCommand(cmd, verbose)
 endfunction
 
 function! AutoRemoteSync#Delete(...)
@@ -100,23 +100,23 @@ function! AutoRemoteSync#Delete(...)
         else
                 let args = " -rf "
         endif
-        let cfg = AutoRemoteSync#GetConfig()
+        let cfg = s:GetConfig()
         let cmd = "ssh -p " . cfg.remote.port . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . " \""
                 \. "rm" . args . cfg.remote.path . "/" . filepath . "\""
-        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+        call s:ExecExternalCommand(cmd, verbose)
 endfunction
 
-function! AutoRemoteSync#ReadfileAsString(filepath)
+function! s:ReadfileAsString(filepath)
         let lines = readfile(a:filepath)
         return join(lines, "\n")
 endfunction
 
-function! AutoRemoteSync#GetCurrentFile()
+function! s:GetCurrentFile()
         return expand("%")
 endfunction
 
-function AutoRemoteSync#JSONParse(string)
+function s:JSONParse(string)
         let [null, false, true] = ['', 0, 1]
         let stripped = substitute(a:string,'\C"\(\\.\|[^"\\]\)*"','','g')
         if stripped !~# "[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \n\r\t]"
@@ -127,7 +127,7 @@ function AutoRemoteSync#JSONParse(string)
         endif
 endfunction
 
-function! AutoRemoteSync#JSONstringify(object)
+function! s:JSONstringify(object)
         if type(a:object) == type('')
                 return '"' . substitute(a:object, "[\001-\031\"\\\\]", '\=printf("\\u%04x", char2nr(submatch(0)))', 'g') . '"'
         elseif type(a:object) == type([])
