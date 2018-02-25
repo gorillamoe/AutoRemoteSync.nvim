@@ -29,6 +29,6 @@ To enable the uploading of files on *bufwrite*, you need to call
 To disable it again, call `AutoRemoteSync#Disable()` like so:
 
 ```
-:call AutoRemoteSync#Enable()<CR>
+:call AutoRemoteSync#Disable()<CR>
 ```
 
