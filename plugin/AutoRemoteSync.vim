@@ -90,6 +90,23 @@ function! AutoRemoteSync#Download(...)
         call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
 endfunction
 
+function! AutoRemoteSync#Delete(...)
+        let buffername = bufname("%")
+        let filepath = get(a:, 1, buffername)
+        let verbose = get(a:, 2, 0)
+        let recursive = get(a:, 3, 0)
+        if recursive == 1
+                let args = ""
+        else
+                let args = " -rf "
+        endif
+        let cfg = AutoRemoteSync#GetConfig()
+        let cmd = "ssh -p " . cfg.remote.port . " "
+                \. cfg.remote.user . "@" . cfg.remote.host . " \""
+                \. "rm" . args . cfg.remote.path . "/" . filepath . "\""
+        call AutoRemoteSync#ExecExternalCommand(cmd, verbose)
+endfunction
+
 function! AutoRemoteSync#ReadfileAsString(filepath)
         let lines = readfile(a:filepath)
         return join(lines, "\n")
