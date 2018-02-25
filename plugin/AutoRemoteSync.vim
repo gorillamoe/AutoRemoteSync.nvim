@@ -28,6 +28,8 @@ endfunction
 function! AutoRemoteSync#ExecExternalCommand(command, verbose)
         if has("nvim") == 1
                 call jobstart(["bash", "-c", a:command])
+        elseif v:version >= 800
+                call job_start("bash -c " . a:command)
         else
                 if a:verbose == 1
                         execute "!" . a:command
