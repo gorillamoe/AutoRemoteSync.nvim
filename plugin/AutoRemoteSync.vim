@@ -3,6 +3,8 @@ if exists("g:loaded_AutoRemoteSync")
 endif
 let g:loaded_AutoRemoteSync = 1
 
+let s:isVerbose = 0
+
 function! AutoRemoteSync#Enable()
         call s:RegisterAutoCommandOnBufWrite(1)
 endfunction
@@ -10,6 +12,70 @@ endfunction
 function! AutoRemoteSync#Disable()
         call s:RegisterAutoCommandOnBufWrite(0)
 endfunction
+
+function! AutoRemoteSync#Verbose(enable)
+        if a:enable == 1
+                let s:isVerbose = 1
+        else
+                let s:isVerbose = 0
+        endif
+endfunction
+
+function! AutoRemoteSync#Upload(...)
+        let buffername = bufname("%")
+        let basedir = s:GetBasedir()
+        let filepath = get(a:, 1, buffername)
+        let cfg = s:GetConfig()
+        let cmd = "scp -r -P " . cfg.remote.port
+                \. " " . filepath . " "
+                \. cfg.remote.user . "@" . cfg.remote.host . ":"
+                \. cfg.remote.path . "/" . basedir
+        call s:ExecExternalCommand(cmd)
+endfunction
+
+function! AutoRemoteSync#Download(...)
+        let buffername = bufname("%")
+        let filepath = get(a:, 1, buffername)
+        let cfg = s:GetConfig()
+        let cmd = "scp -r -P " . cfg.remote.port . " "
+                \. cfg.remote.user . "@" . cfg.remote.host . ":"
+                \. cfg.remote.path . "/" . filepath
+                \. " " . filepath . " "
+        call s:ExecExternalCommand(cmd)
+endfunction
+
+function! AutoRemoteSync#Delete(...)
+        let buffername = bufname("%")
+        let filepath = get(a:, 1, buffername)
+        let recursive = get(a:, 3, 0)
+        if recursive == 1
+                let args = ""
+        else
+                let args = " -rf "
+        endif
+        let cfg = s:GetConfig()
+        let cmd = "ssh -p " . cfg.remote.port . " "
+                \. cfg.remote.user . "@" . cfg.remote.host . " \""
+                \. "rm" . args . cfg.remote.path . "/" . filepath . "\""
+        call s:ExecExternalCommand(cmd)
+endfunction
+
+function! s:OnJobEventHandler(job_id, data, event) dict
+        if a:event == 'stdout'
+                let str = self.shell.' stdout: '.join(a:data)
+        elseif a:event == 'stderr'
+                let str = self.shell.' stderr: '.join(a:data)
+        else
+                let str = self.shell.' finished'
+        endif
+        echom str
+endfunction
+
+let s:jobEventCallbacks = {
+        \ 'on_stdout': function('s:OnJobEventHandler'),
+        \ 'on_stderr': function('s:OnJobEventHandler'),
+        \ 'on_exit': function('s:OnJobEventHandler')
+\ }
 
 function! s:GetConfig()
         let cfgFilepath = getcwd() . "/" . s:GetConfigFilename()
@@ -22,13 +88,17 @@ function! s:GetConfigFilename()
         return ".AutoRemoteSync.json"
 endfunction
 
-function! s:ExecExternalCommand(command, verbose)
+function! s:ExecExternalCommand(command)
         if has("nvim") == 1
-                call jobstart(["bash", "-c", a:command])
+                if s:isVerbose == 0
+                        call jobstart(["bash", "-c", a:command])
+                else
+                        call jobstart(['bash', '-c', a:command], extend({'shell': 'AutoRemoteSync'}, s:jobEventCallbacks))
+                endi
         elseif v:version >= 800
                 call job_start("bash -c " . a:command)
         else
-                if a:verbose == 1
+                if s:isVerbose == 1
                         execute "!" . a:command
                 else
                         silent execute "!" . a:command
@@ -63,48 +133,6 @@ function! s:GetBasedir(...)
                 return ""
         else
                 return basedir
-endfunction
-
-function! AutoRemoteSync#Upload(...)
-        let buffername = bufname("%")
-        let basedir = s:GetBasedir()
-        let filepath = get(a:, 1, buffername)
-        let verbose = get(a:, 2, 0)
-        let cfg = s:GetConfig()
-        let cmd = "scp -r -P " . cfg.remote.port
-                \. " " . filepath . " "
-                \. cfg.remote.user . "@" . cfg.remote.host . ":"
-                \. cfg.remote.path . "/" . basedir
-        call s:ExecExternalCommand(cmd, verbose)
-endfunction
-
-function! AutoRemoteSync#Download(...)
-        let buffername = bufname("%")
-        let filepath = get(a:, 1, buffername)
-        let verbose = get(a:, 2, 0)
-        let cfg = s:GetConfig()
-        let cmd = "scp -r -P " . cfg.remote.port . " "
-                \. cfg.remote.user . "@" . cfg.remote.host . ":"
-                \. cfg.remote.path . "/" . filepath
-                \. " " . filepath . " "
-        call s:ExecExternalCommand(cmd, verbose)
-endfunction
-
-function! AutoRemoteSync#Delete(...)
-        let buffername = bufname("%")
-        let filepath = get(a:, 1, buffername)
-        let verbose = get(a:, 2, 0)
-        let recursive = get(a:, 3, 0)
-        if recursive == 1
-                let args = ""
-        else
-                let args = " -rf "
-        endif
-        let cfg = s:GetConfig()
-        let cmd = "ssh -p " . cfg.remote.port . " "
-                \. cfg.remote.user . "@" . cfg.remote.host . " \""
-                \. "rm" . args . cfg.remote.path . "/" . filepath . "\""
-        call s:ExecExternalCommand(cmd, verbose)
 endfunction
 
 function! s:ReadfileAsString(filepath)
