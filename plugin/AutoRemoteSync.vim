@@ -6,6 +6,12 @@ let g:loaded_AutoRemoteSync = 1
 let s:isVerbose = 0
 
 function! AutoRemoteSync#Enable()
+        let cfg = s:GetConfig()
+        if has_key(cfg, 'verbose') && cfg.verbose == 1
+                let s:isVerbose = 1  
+        else
+                let s:isVerbose = 0  
+        endif
         call s:RegisterAutoCommandOnBufWrite(1)
 endfunction
 
