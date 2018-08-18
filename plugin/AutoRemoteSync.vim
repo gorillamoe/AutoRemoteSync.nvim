@@ -4,6 +4,7 @@ endif
 let g:loaded_AutoRemoteSync = 1
 
 let s:isVerbose = 0
+let s:configFilename = ".AutoRemoteSync.json"
 
 function! AutoRemoteSync#Enable()
         let cfg = s:GetConfig()
@@ -84,14 +85,22 @@ let s:jobEventCallbacks = {
 \ }
 
 function! s:GetConfig()
-        let cfgFilepath = getcwd() . "/" . s:GetConfigFilename()
-        let jsonstr = s:ReadfileAsString(".AutoRemoteSync.json")
+        let configFilename = AutoRemoteSync#GetConfigFilename
+        let cfgFilepath = getcwd() . "/" . configFilename
+        let jsonstr = s:ReadfileAsString(configFilename)
         let json = s:JSONParse(jsonstr)
         return json
 endfunction
 
-function! s:GetConfigFilename()
-        return ".AutoRemoteSync.json"
+function! AutoRemoteSync#SetConfigFilename(fn)
+        let s:configFilename = a:fn
+endfunction
+
+function! AutoRemoteSync#GetConfigFilename()
+        if s:isVerbose == 0
+                echo s:configFilename
+        endif
+        return s:configFilename
 endfunction
 
 function! s:ExecExternalCommand(command)
@@ -100,7 +109,7 @@ function! s:ExecExternalCommand(command)
                         call jobstart(["bash", "-c", a:command])
                 else
                         call jobstart(['bash', '-c', a:command], extend({'shell': 'AutoRemoteSync'}, s:jobEventCallbacks))
-                endi
+                endif
         elseif v:version >= 800
                 call job_start("bash -c " . a:command)
         else
