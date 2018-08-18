@@ -29,6 +29,13 @@ Downloads the file opened in the current buffer when no argument is passed.
 You can pass the filepath relative to the current working directory,
 if you want to download a different file manually.
 
+                                                *AutoRemoteSync#GetConfigFilename()*
+Gets the configuration filename.  Defaults to `.AutoRemoteSync.json`.
+
+                                                *AutoRemoteSync#SetConfigFilename()*
+Sets the configuration filename.  Usage:
+`: callAutoRemoteSync#SetConfigFilename(".AnotherAutoRemoteSyncConfig.json")`
+
 ABOUT                                           *AutoRemoteSync-about*
 
 Grab the latest version or report a bug on GitHub:
