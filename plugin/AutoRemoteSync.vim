@@ -85,7 +85,7 @@ let s:jobEventCallbacks = {
 \ }
 
 function! s:GetConfig()
-        let configFilename = AutoRemoteSync#GetConfigFilename
+        let configFilename = AutoRemoteSync#GetConfigFilename()
         let cfgFilepath = getcwd() . "/" . configFilename
         let jsonstr = s:ReadfileAsString(configFilename)
         let json = s:JSONParse(jsonstr)
