@@ -1,6 +1,6 @@
 # AutoRemoteSync.nvim
 
-A Vim/Neovim plugin to automatically upload files via `scp` to a remote
+A Vim/Neovim plugin to automatically upload files via `rsync` to a remote
 server when you write the contents of a buffer to disk.
 
 You need to have a `.AutoRemoteSync.json` configuration file in the current
@@ -13,9 +13,9 @@ An example `.AutoRemoteSync.json` file would look like this:
         "remote": {
                 "host": "example.com",
                 "user": "root",
-                "port": 22,
                 "path": "/var/www/html"
         }
+        "verbose": true
 }
 ```
 

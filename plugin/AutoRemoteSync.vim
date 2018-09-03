@@ -9,9 +9,9 @@ let s:configFilename = ".AutoRemoteSync.json"
 function! AutoRemoteSync#Enable()
         let cfg = s:GetConfig()
         if has_key(cfg, 'verbose') && cfg.verbose == 1
-                let s:isVerbose = 1  
+                let s:isVerbose = 1
         else
-                let s:isVerbose = 0  
+                let s:isVerbose = 0
         endif
         call s:RegisterAutoCommandOnBufWrite(1)
 endfunction
@@ -33,8 +33,7 @@ function! AutoRemoteSync#Upload(...)
         let basedir = s:GetBasedir()
         let filepath = get(a:, 1, buffername)
         let cfg = s:GetConfig()
-        let cmd = "scp -r -P " . cfg.remote.port
-                \. " " . filepath . " "
+        let cmd = "rsync -av --no-o --no-g " . filepath . " "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . basedir
         call s:ExecExternalCommand(cmd)
@@ -44,7 +43,7 @@ function! AutoRemoteSync#Download(...)
         let buffername = bufname("%")
         let filepath = get(a:, 1, buffername)
         let cfg = s:GetConfig()
-        let cmd = "scp -r -P " . cfg.remote.port . " "
+        let cmd = "rsync -av --no-o --no-g "
                 \. cfg.remote.user . "@" . cfg.remote.host . ":"
                 \. cfg.remote.path . "/" . filepath
                 \. " " . filepath . " "
@@ -185,4 +184,29 @@ function! s:JSONstringify(object)
                 return string(a:object)
         endif
 endfunction
+
+function! s:CommandListBooleanCompletion(ArgLead, CmdLine, CursorPos)
+        return [1, 0]
+endfunction
+
+function! s:CommandListFileCompletion(ArgLead, CmdLine, CursorPos)
+        return filter(s:GetFilesInDir(), 'v:val =~ "^'. a:ArgLead .'"')
+endfunction
+
+function! s:GetAbsoluteFilepath()
+        let filepath = getcwd() . "/"
+        return filepath
+endfunction
+
+function! s:GetFilesInDir()
+        let filepath = s:GetAbsoluteFilepath()
+        let filelist = systemlist('ls -a ' . filepath)
+        return filelist
+endfunction
+
+command! AutoRemoteSyncEnable call AutoRemoteSync#Enable()
+command! AutoRemoteSyncDisable call AutoRemoteSync#Disable()
+command! AutoRemoteSyncGetConfigFilename call AutoRemoteSync#GetConfigFilename()
+command! -bang -complete=customlist,s:CommandListBooleanCompletion -nargs=1 AutoRemoteSyncVerbose call AutoRemoteSync#Verbose(<f-args>)
+command! -bang -complete=customlist,s:CommandListFileCompletion -nargs=1 AutoRemoteSyncSetConfigFilename call AutoRemoteSync#SetConfigFilename(<f-args>)
 

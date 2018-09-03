@@ -4,5 +4,6 @@
                 "user": "root",
                 "port": 22,
                 "path": "/var/www/html"
-        }
+        },
+        "verbose": true
 }
