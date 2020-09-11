@@ -1,4 +1,5 @@
 {
+	"type": "rsync",
         "remote": {
                 "host": "example.com",
                 "user": "root",
