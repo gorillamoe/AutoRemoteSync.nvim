@@ -4,6 +4,7 @@ endif
 let g:loaded_AutoRemoteSync = 1
 
 let s:isVerbose = 0
+let s:type = "rsync"
 let s:configFilename = ".AutoRemoteSync.json"
 
 function! AutoRemoteSync#Enable()
@@ -13,6 +14,9 @@ function! AutoRemoteSync#Enable()
         else
                 let s:isVerbose = 0
         endif
+        if has_key(cfg, 'type')
+                let s:type = cfg.type
+	endif
         call s:RegisterAutoCommandOnBufWrite(1)
 endfunction
 
@@ -33,9 +37,16 @@ function! AutoRemoteSync#Upload(...)
         let basedir = s:GetBasedir()
         let filepath = get(a:, 1, buffername)
         let cfg = s:GetConfig()
-        let cmd = "rsync -av --no-o --no-g " . filepath . " "
-                \. cfg.remote.user . "@" . cfg.remote.host . ":"
-                \. cfg.remote.path . "/" . basedir
+	if s:type == "rsync"
+		let cmd = "rsync -av --no-o --no-g " . filepath . " "
+			\. cfg.remote.user . "@" . cfg.remote.host . ":"
+			\. cfg.remote.path . "/" . basedir
+	elseif s:type == "sftp"
+		let cmd = "sftp " . cfg.remote.user . "@" . cfg.remote.host . ":"
+			\. cfg.remote.path . "/" . basedir . "<<< $'put " . filepath . "'"
+	else
+		let cmd = "echo no valid type specified"
+	endif
         call s:ExecExternalCommand(cmd)
 endfunction
 
@@ -43,10 +54,17 @@ function! AutoRemoteSync#Download(...)
         let buffername = bufname("%")
         let filepath = get(a:, 1, buffername)
         let cfg = s:GetConfig()
-        let cmd = "rsync -av --no-o --no-g "
-                \. cfg.remote.user . "@" . cfg.remote.host . ":"
-                \. cfg.remote.path . "/" . filepath
-                \. " " . filepath . " "
+	if s:type == "rsync"
+		let cmd = "rsync -av --no-o --no-g "
+			\. cfg.remote.user . "@" . cfg.remote.host . ":"
+			\. cfg.remote.path . "/" . filepath
+			\. " " . filepath . " "
+	elseif s:type == "sftp"
+		let cmd = "sftp " . cfg.remote.user . "@" . cfg.remote.host . ":"
+			\. cfg.remote.path . "/" . filepath . " " . filepath
+	else
+		let cmd = "echo no valid type specified"
+	endif
         call s:ExecExternalCommand(cmd)
 endfunction
 
