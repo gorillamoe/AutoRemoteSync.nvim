@@ -1,7 +1,9 @@
 # AutoRemoteSync.nvim
 
-A Vim/Neovim plugin to automatically upload files via `rsync` to a remote
+A Vim/Neovim plugin to automatically upload files via `rsync` or `sftp` to a remote
 server when you write the contents of a buffer to disk.
+
+Only works with `ssh-agent` public key authentication and already unlocked key.
 
 You need to have a `.AutoRemoteSync.json` configuration file in the current
 working directory of Vim/Neovim.
@@ -10,11 +12,12 @@ An example `.AutoRemoteSync.json` file would look like this:
 
 ```json
 {
+	"type": "rsync",
         "remote": {
                 "host": "example.com",
                 "user": "root",
                 "path": "/var/www/html"
-        }
+        },
         "verbose": true
 }
 ```
